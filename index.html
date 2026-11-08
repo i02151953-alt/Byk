@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Задания Картографа</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: linear-gradient(160deg, #0d1b2a 0%, #1b263b 60%, #0d1b2a 100%);
+    color: #e8dcc0;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .stars { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+  .star { position:absolute; background:#f5e6a8; border-radius:50%; animation: twinkle 3s infinite; }
+  @keyframes twinkle { 0%,100%{opacity:.2;} 50%{opacity:1;} }
+  .wrap { max-width: 720px; margin: 0 auto; position: relative; z-index:1; }
+  h1 {
+    text-align:center; color:#f5d97e; font-size: 1.9em; letter-spacing:2px;
+    text-shadow: 0 0 18px rgba(245,217,126,.45); margin: 20px 0 8px;
+  }
+  .subtitle { text-align:center; color:#a8b8d0; font-style:italic; margin-bottom: 28px; }
+  .progress {
+    text-align:center; color:#f5d97e; font-size:1.1em; margin-bottom:30px;
+    border:1px solid #8a6d2f; border-radius:12px; padding:12px;
+    background:rgba(245,217,126,.06);
+  }
+  .task {
+    border:1.5px solid #8a6d2f; border-radius:14px;
+    background:rgba(20,30,48,.75);
+    padding:20px 22px; margin-bottom:22px;
+    box-shadow:0 0 14px rgba(245,217,126,.08);
+  }
+  .task h2 { color:#f5d97e; font-size:1.15em; margin-bottom:10px; }
+  .task p { line-height:1.55; font-size:1.02em; }
+  .done-btn {
+    margin-top:14px; padding:8px 18px; border-radius:8px; cursor:pointer;
+    border:1px solid #8a6d2f; background:transparent; color:#e8dcc0;
+    font-family:inherit; font-size:.95em; transition:all .25s;
+  }
+  .done-btn.on { background:#f5d97e; color:#1b263b; font-weight:bold; }
+  .task.completed { border-color:#f5d97e; box-shadow:0 0 20px rgba(245,217,126,.25); }
+  .task.completed h2::after { content:" ✓"; color:#7fc97f; }
+  footer {
+    text-align:center; margin-top:40px; color:#8fa0b8; font-style:italic;
+    border-top:1px solid #3a4a63; padding-top:20px;
+  }
+</style>
+</head>
+<body>
+<canvas class="stars" id="sky"></canvas>
+<div class="wrap">
+  <h1>✦ Задания Картографа ✦</h1>
+  <p class="subtitle">Десять испытаний для тех, кто умеет слушать</p>
+  <div class="progress">Выполнено: <span id="cnt">0</span> из 10</div>
+  <div id="tasks"></div>
+  <footer>— Отсканируй, если умеешь слушать —</footer>
+</div>
+<script>
+const tasks = [
+  "Загляни в сундук мысленно: напиши три самых бесполезных сокровища, которые ты бы туда положил. Начни с самого странного!",
+  "Искра потеряла своё старое имя. Придумай ей новое — такое, чтобы оно звучало как маленький взрыв света.",
+  "Портал тихо гудит на закате. Опиши в трёх словах звук, который он издаёт, когда кто-то проходит насквозь.",
+  "Дом собирает мечты, но в нём не хватает одной комнаты. Нарисуй её и подпиши, что там должно происходить.",
+  "Речка несёт записки в бутылках. Напиши записку длиной не больше десяти слов, которую ты бы пустил по воде.",
+  "Близнецы варят зелье «замечать красивое». Назови три красивые вещи, которые ты замечал сегодня и не заметил бы вчера.",
+  "Тысяча голов Спящей горы проснулись и хотят поиграть. Придумай игру, в которую может играть тысяча голов.",
+  "Свет маяка сегодня похож на букву. Нарисуй её и придумай слово, которое она начала, но не успела дописать.",
+  "Нарисуй свою карту: три места, где ты был, и одно, куда мечтаешь попасть. Соедини их золотой линией.",
+  "Книга тысячи глав открыла не свою страницу. Спроси у неё один вопрос — и запиши ответ, который она могла бы тебе дать."
+];
+const box = document.getElementById('tasks');
+const saved = JSON.parse(localStorage.getItem('kartograf') || '[]');
+function refresh() {
+  document.getElementById('cnt').textContent = saved.filter(Boolean).length;
+}
+tasks.forEach((t, i) => {
+  const d = document.createElement('div');
+  d.className = 'task' + (saved[i] ? ' completed' : '');
+  d.id = 'task' + (i+1);
+  d.innerHTML = '<h2>Глава ' + (i+1) + '</h2><p>' + t + '</p>' +
+    '<button class="done-btn' + (saved[i] ? ' on' : '') + '">' +
+    (saved[i] ? '✓ Выполнено' : 'Отметить как выполненное') + '</button>';
+  const btn = d.querySelector('button');
+  btn.onclick = () => {
+    saved[i] = !saved[i];
+    localStorage.setItem('kartograf', JSON.stringify(saved));
+    d.classList.toggle('completed', saved[i]);
+    btn.classList.toggle('on', saved[i]);
+    btn.textContent = saved[i] ? '✓ Выполнено' : 'Отметить как выполненное';
+    refresh();
+  };
+  box.appendChild(d);
+});
+refresh();
+const sky = document.getElementById('sky');
+const ctx = sky.getContext('2d');
+function draw() {
+  sky.width = innerWidth; sky.height = innerHeight;
+  for (let i = 0; i < 120; i++) {
+    ctx.globalAlpha = Math.random();
+    ctx.beginPath();
+    ctx.arc(Math.random()*sky.width, Math.random()*sky.height, Math.random()*1.4+0.3, 0, 7);
+    ctx.fillStyle = '#f5e6a8';
+    ctx.fill();
+  }
+}
+draw();
+setInterval(draw, 2500);
+if (location.hash) {
+  const el = document.querySelector(location.hash);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+</script>
+</body>
+</html>
